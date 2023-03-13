@@ -1,6 +1,6 @@
 export interface Recipe
 {
-    id:string;
+    id?:string;
     recipe:string;
     amount:number;
     restaurant:string;

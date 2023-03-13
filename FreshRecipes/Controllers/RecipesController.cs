@@ -3,7 +3,8 @@ using FreshRecipes.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-/*namespace FreshRecipes.Controllers
+/*
+namespace FreshRecipes.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
@@ -85,12 +86,13 @@ using Microsoft.EntityFrameworkCore;
     }
   }
 }
-
 */
+
 
 using Dapper;
 using Npgsql;
 using System.Data;
+
 
 namespace FreshRecipes.Controllers
 {
@@ -99,8 +101,8 @@ namespace FreshRecipes.Controllers
   public class RecipesController : Controller
   {
     private readonly IDbConnection _connection;//Used when using Dapper
-    //private readonly ApiDbContext dbConetext;//Used when using EF
-    private readonly FreshRecipesDBContext _freshRecipesDBContext;
+   
+    //private readonly FreshRecipesDBContext _freshRecipesDBContext;
 
     public RecipesController(IConfiguration configuration)
     {
@@ -109,7 +111,6 @@ namespace FreshRecipes.Controllers
     }
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    //Using Dapper
     public async Task<IActionResult> GetAllRecipes()
     {
         List<Recipe> orders = new List<Recipe>();
@@ -118,63 +119,55 @@ namespace FreshRecipes.Controllers
     }
 
 
-    /*[HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    //Using Dapper
-    public async Task<IActionResult> AddEmployees([FromBody] Recipe recipe)
-    {
-        var result=(await _connection.ExecuteAsync("INSERT INTO public.\"Recipes\"(\r\n\t \"recipe\", \"amount\", \"restaurant\", \"city\")\r\n\tVALUES (@recipe, @amount, @restaurant, @city)",recipe));
-        return Ok(recipe);
-    }*/
     [HttpPost]
-    public async Task<IActionResult> AddRecipe([FromBody] Recipe recipeReq)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> AddRecipes([FromBody] Recipe recipe)
     {
-      recipeReq.id = Guid.NewGuid();
-      await _freshRecipesDBContext.Recipes.AddAsync(recipeReq);
-      await _freshRecipesDBContext.SaveChangesAsync();
-      return Ok(recipeReq);
+        recipe.id = Guid.NewGuid();
+        var result = (await _connection.ExecuteAsync("INSERT INTO public.\"Recipes\"(\r\n\t  \"id\",\"recipe\", \"amount\", \"restaurant\", \"city\")\r\n\tVALUES (@id,@recipe, @amount, @restaurant, @city);", recipe));
+        return Ok(result);
     }
 
-    //[HttpGet("{id:int}")]
-    //[ProducesResponseType(StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //Using dapper
-    //public async Task<IActionResult> GetEmployee([FromRoute] int id)
-    //{
-    //    var result = (await _connection.QueryAsync<Employee>("SELECT * FROM public.\"Employees\" WHERE \"Id\"=@id", new { id }).ConfigureAwait(false)).FirstOrDefault();
-    //    if (result == null)
-    //    {
-    //        return NotFound();
-    //    }
-    //    return Ok(result);
-    //}
+
+    [HttpGet("{id:Guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRecipe([FromRoute] Guid id)
+    {
+        var result = (await _connection.QueryAsync<Recipe>("SELECT * FROM public.\"Recipes\" WHERE \"id\"=@id", new { id }).ConfigureAwait(false)).FirstOrDefault();
+        if (result == null)
+        {
+            return NotFound();
+        }
+        return Ok(result);
+    }
 
 
-    //[HttpPut]
-    //[ProducesResponseType(StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //Using Dapper
-    //public async Task<IActionResult> EditEmployee([FromBody] Employee employee)
-    //{
-    //    var result = (await _connection.ExecuteAsync("UPDATE public.\"Employees\"\r\n\tSET \"Name\"=@Name, \"Email\"=@Email, \"Phone\"=@Phone, \"Salary\"=@Salary, \"Department\"=@Department\r\n\tWHERE \"Id\"=@Id;", employee));
-    //    return Ok(result);
-    //}
-    //Using EF
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EditRecipe([FromBody] Recipe recipe)
+    {
+        var result = (await _connection.ExecuteAsync("UPDATE public.\"Recipes\"\r\n\tSET \"recipe\"=@recipe, \"amount\"=@amount, \"restaurant\"=@restaurant, \"city\"=@city\r\n\tWHERE \"id\"=@id;", recipe));
+        return Ok(result);
+    }
+    
 
-    //[HttpDelete("{id:int}")]
-    //[ProducesResponseType(StatusCodes.Status200OK)]
-    //[ProducesResponseType(StatusCodes.Status404NotFound)]
-    //Using Dapper
-    //public async Task<IActionResult> DeleteEmployee([FromRoute] int id)
-    //{
-    //    var employee = (await _connection.QueryAsync<Employee>("SELECT * FROM public.\"Employees\" WHERE \"Id\"=@id", new {id}).ConfigureAwait(false)).FirstOrDefault();
-    //    if (employee == null)
-    //    {
-    //        return NotFound();
-    //    }
-    //    var result = (await _connection.ExecuteAsync("DELETE FROM public.\"Employees\"\r\n\tWHERE \"Id\"=@Id;", new { id }));
-    //    return Ok(result);
-    //}
 
+
+    [HttpDelete("{id:Guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteRecipe([FromRoute] Guid id)
+    {
+        var order = (await _connection.QueryAsync<Recipe>("SELECT * FROM public.\"Recipes\" WHERE \"id\"=@id", new {id}).ConfigureAwait(false)).FirstOrDefault();
+        if (order == null)
+        {
+            return NotFound();
+        }
+        var result = (await _connection.ExecuteAsync("DELETE FROM public.\"Recipes\"\r\n\tWHERE \"id\"=@Id;", new { id }));
+        return Ok(result);
+    }
   }
 }
+

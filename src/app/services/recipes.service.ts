@@ -26,9 +26,9 @@ export class RecipesService {
     return this.http.get<Recipe>('https://localhost:7254/api/Recipes/' + id);
   }
 
-  updateRecipe(id:string, updateRecipeReq: Recipe):Observable<Recipe>
+  updateRecipe(id: string, updateRecipeReq: Recipe): Observable<Recipe>
   {
-    return this.http.put<Recipe>('https://localhost:7254/api/Recipes/'+ id, updateRecipeReq);
+    return this.http.put<Recipe>('https://localhost:7254/api/Recipes/', updateRecipeReq);
   }
 
   deleteRecipe(id: string): Observable<Recipe>
